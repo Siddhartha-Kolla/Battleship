@@ -69,3 +69,24 @@ print(create_table(board_len,com_board))
 
 
 print("Welcome to the Python Battleship Game\n\n")
+
+def if_sunk_or_not(com_board,num):
+    return any(num in x for x in com_board)
+
+def ask_user_input(board_len):
+    user_input = input("Please type in your coordinate like H7: ").strip()
+    while not(int(user_input[1]) < board_len and ord(user_input[0])-65 < board_len):
+        user_input = input("Incorrect Coordinate!! Please type in your coordinate like H7: ").strip()
+    return [int(user_input[1]),ord(user_input[0])-65]
+
+
+def game_loop(board_len):
+    sunk_ships = 0
+    while sunk_ships != 4:
+        ui = ask_user_input(board_len)
+        if com_board[ui[0]][ui[1]].isdigit():
+            print("Hit")
+            
+
+
+game_loop(board_len)
