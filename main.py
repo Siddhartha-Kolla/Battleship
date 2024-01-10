@@ -1,7 +1,9 @@
 from tabulate import tabulate
 import random
+import os
 
 # Player board
+global board_len
 board_len = 10
 
 board = [["" for i in range(board_len)] for x in range(board_len)]
@@ -64,28 +66,51 @@ for i in range(2,6):
 
 
 # com_board = place_ships(com_board)
-print(create_table(board_len,board))
-print(create_table(board_len,com_board))
-
-
-print("Welcome to the Python Battleship Game\n\n")
+# print(create_table(board_len,board))
+os.system("clear")
+print("=============================Welcome to the Python Battleship Game=============================\n\n")
 
 def if_sunk_or_not(com_board,num):
     return any(num in x for x in com_board)
 
 def ask_user_input(board_len):
+    print(create_table(board_len,board))
     user_input = input("Please type in your coordinate like H7: ").strip()
-    while not(int(user_input[1]) < board_len and ord(user_input[0])-65 < board_len):
+    while not(int(user_input[1:])-1 < board_len and ord(user_input[0].upper())-65 < board_len):
         user_input = input("Incorrect Coordinate!! Please type in your coordinate like H7: ").strip()
-    return [int(user_input[1]),ord(user_input[0])-65]
+    return [int(user_input[1:])-1,ord(user_input[0].upper())-65]
 
 
 def game_loop(board_len):
     sunk_ships = 0
-    while sunk_ships != 4:
+    last_turn = 5
+    turns = 0
+    while sunk_ships != 4 and turns <= last_turn:
+        turns += 1
         ui = ask_user_input(board_len)
+        while board[ui[0]][ui[1]] == "-" or board[ui[0]][ui[1]] == "X":
+            os.system("clear")
+            print("You already guessed this coordinate")
+            ui = ask_user_input(board_len)
         if com_board[ui[0]][ui[1]].isdigit():
-            print("Hit")
+            os.system("clear")
+            print(f"{chr(65+ui[1])}{ui[0]+1} is a Hit\n")
+            temp_num = com_board[ui[0]][ui[1]]
+            board[ui[0]][ui[1]] = "X"
+            com_board[ui[0]][ui[1]] = "X"
+            if not if_sunk_or_not(com_board,temp_num):
+                print("Sunk")
+                sunk_ships += 1
+        else:
+            os.system("clear")
+            print(f"{chr(65+ui[1])}{ui[0]+1} is a Miss\n")
+            board[ui[0]][ui[1]] = "-"
+            com_board[ui[0]][ui[1]] = "-"
+    if sunk_ships == 4:
+        print(f"You have won the game with {turns} moves")
+    else:
+        print(f"Oh no!! You have lost the Battleship game with {sunk_ships} ships sunk and {turns} moves")
+
             
 
 
