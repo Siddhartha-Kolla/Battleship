@@ -83,7 +83,7 @@ def ask_user_input(board_len):
 
 def game_loop(board_len):
     sunk_ships = 0
-    last_turn = 5
+    last_turn = 30
     turns = 0
     while sunk_ships != 4 and turns <= last_turn:
         turns += 1
