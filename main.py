@@ -12,9 +12,10 @@ com_board = [["" for i in range(board_len)] for x in range(board_len)]
 def create_table(board_len,data):
     
     # Table to print the players board
-    header = [chr(65+i) for i in range(board_len)]
-    board_index = range(1,board_len+1)
-    table = tabulate(data,tablefmt="rounded_grid",showindex=board_index,headers=header)
+    board_alphabets = [chr(65+i) for i in range(board_len)]
+    # board_index = range(1,board_len+1)
+    board_numbers = [i+1 for i in range(board_len)]
+    table = tabulate(data,tablefmt="grid",showindex=board_alphabets,headers=board_numbers)
     return table
 
 # def place_ships(com_board):
@@ -78,7 +79,7 @@ def ask_user_input(board_len):
     user_input = input("Please type in your coordinate like H7: ").strip()
     while not(int(user_input[1:])-1 < board_len and ord(user_input[0].upper())-65 < board_len):
         user_input = input("Incorrect Coordinate!! Please type in your coordinate like H7: ").strip()
-    return [int(user_input[1:])-1,ord(user_input[0].upper())-65]
+    return [ord(user_input[0].upper())-65,int(user_input[1:])-1,]
 
 
 def game_loop(board_len):
