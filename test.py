@@ -1,6 +1,16 @@
-l = [
-    [1],
-    [2]
-]
+from tabulate import tabulate
+board_len = 10
+board = [["" for i in range(board_len)] for x in range(board_len)]
+def create_table(board_len,data):
+    
+    # Table to print the players board
+    header = [chr(65+i) for i in range(board_len)]
+    board_index = range(1,board_len+1)
+    table = tabulate(data,tablefmt="rounded_grid",showindex=board_index,headers=header)
+    return table
 
-print(any(1 in x for x in l))
+table1 = create_table(board_len,board)
+# print(f"{table1}   {table1}")
+print(tabulate([[table1, table1]], rowalign="center", tablefmt="grid"))
+
+print(11%10)

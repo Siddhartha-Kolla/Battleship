@@ -2,7 +2,7 @@ from tabulate import tabulate
 import random
 import os
 
-
+"""My category"""
 def create_table(board_len,data):
     
     # Table to print the players board

@@ -1,9 +1,10 @@
 import socket
 from _thread import *
 import pickle
-from game import Game
+from gametech import Game
 
-server = "10.11.250.207"
+print("Hello")
+server = "192.168.137.1"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
