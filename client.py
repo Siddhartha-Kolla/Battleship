@@ -6,9 +6,8 @@ import pickle
 import time
 
 board_len = 10
-player_board = [["" for i in range(board_len)] for x in range(board_len)]
+playe_board = [["" for i in range(board_len)] for x in range(board_len)]
 opponent_board = [["" for i in range(board_len)] for x in range(board_len)]
-sunk_ships = 0
 
 # Function for creating a table
 def create_table(board_len,data):
@@ -80,52 +79,6 @@ def place_ships(com_board,board_len,board):
 
 
 
-def redrawWindow(win, game, p):
-    win.fill((128,128,128))
-
-    if not(game.connected()):
-        font = pygame.font.SysFont("comicsans", 80)
-        text = font.render("Waiting for Player...", 1, (255,0,0), True)
-        win.blit(text, (width/2 - text.get_width()/2, height/2 - text.get_height()/2))
-    else:
-        font = pygame.font.SysFont("comicsans", 60)
-        text = font.render("Your Move", 1, (0, 255,255))
-        win.blit(text, (80, 200))
-
-        text = font.render("Opponents", 1, (0, 255, 255))
-        win.blit(text, (380, 200))
-
-        move1 = game.get_player_move(0)
-        move2 = game.get_player_move(1)
-        if game.bothWent():
-            text1 = font.render(move1, 1, (0,0,0))
-            text2 = font.render(move2, 1, (0, 0, 0))
-        else:
-            if game.p1Went and p == 0:
-                text1 = font.render(move1, 1, (0,0,0))
-            elif game.p1Went:
-                text1 = font.render("Locked In", 1, (0, 0, 0))
-            else:
-                text1 = font.render("Waiting...", 1, (0, 0, 0))
-
-            if game.p2Went and p == 1:
-                text2 = font.render(move2, 1, (0,0,0))
-            elif game.p2Went:
-                text2 = font.render("Locked In", 1, (0, 0, 0))
-            else:
-                text2 = font.render("Waiting...", 1, (0, 0, 0))
-
-        if p == 1:
-            win.blit(text2, (100, 350))
-            win.blit(text1, (400, 350))
-        else:
-            win.blit(text1, (100, 350))
-            win.blit(text2, (400, 350))
-
-        for btn in btns:
-            btn.draw(win)
-
-    pygame.display.update()
 
 def main():
     n = Network()
@@ -136,73 +89,56 @@ def main():
     print("Please choose your ships for the board:")
     time.sleep(2)
 
-    player_board = place_ships(opponent_board,board_len,player_board)
+    player_board = place_ships(opponent_board,board_len,playe_board)
     
     run = True
-
+    game = n.send("get")
+    game.Went[player] = True
+    game.moves[player] = player_board
+    game = n.send("play")
     while run:
         try:
-            game = n.send("get")
-        except:
-            run = False
-            print("Couldn't get game")
-            break
-
-def main2():
-    run = True
-    clock = pygame.time.Clock()
-    n = Network()
-    player = int(n.getP())
-    print("You are player", player)
-
-    while run:
-        clock.tick(60)
-        try:
-            game = n.send("get")
-        except:
-            run = False
-            print("Couldn't get game")
-            break
-
-        if game.bothWent():
-            redrawWindow(win, game, player)
-            pygame.time.delay(500)
-            try:
-                game = n.send("reset")
-            except:
-                run = False
-                print("Couldn't get game")
-                break
-
-            font = pygame.font.SysFont("comicsans", 90)
-            if (game.winner() == 1 and player == 1) or (game.winner() == 0 and player == 0):
-                text = font.render("You Won!", 1, (255,0,0))
-            elif game.winner() == -1:
-                text = font.render("Tie Game!", 1, (255,0,0))
+            game = n.send("get")         
+            if not game.bothWent():
+                print("Waiting for the Player.......")
             else:
-                text = font.render("You Lost...", 1, (255, 0, 0))
+                os.system("clear")
+                if 4 in game.sunk_ships:
+                    print(f"Game Over! Player {game.sunk_ships.index(4)+1} Won")
+                if game.turn == player:
+                    os.system("clear")
+                    print(f"It's your turn! You are player {player}")
+                    time.sleep(2)
+                    os.system("clear")
+                    ui = ask_user_input(game.board_len,"Please type in your coordinate like H7: ",game.moves[player],[["" if type(game.moves[(player+1)%2][x][value]) == int else game.moves[(player+1)%2][x][value] for value in range(game.board_len)] for x in range(game.board_len)])
+                    while game.moves[(player+1)%2][ui[0]][ui[1]] == "-" or game.moves[(player+1)%2][ui[0]][ui[1]] == "X":
+                        os.system("clear")
+                        print("You already guessed this coordinate")
+                        ui = ask_user_input(game.board_len,"Please type in your coordinate like H7: ",game.moves[player],[["" if type(game.moves[(player+1)%2][x][value]) == int else game.moves[(player+1)%2][x][value] for value in range(game.board_len)] for x in range(game.board_len)])
+                    if game.moves[(player+1)%2][ui[0]][ui[1]].isdigit():
+                        os.system("clear")
+                        print(f"{chr(65+ui[1])}{ui[0]+1} is a Hit\n")
+                        temp_num = game.moves[(player+1)%2][ui[0]][ui[1]]
+                        game.moves[(player+1)%2][ui[0]][ui[1]] = "X"
+                        if not game.if_sunk_or_not(game.moves[(player+1)%2],temp_num):
+                            print("Sunk")
+                            game.sunk_ships[(player+1)%2] += 1
+                    else:
+                        os.system("clear")
+                        print(f"{chr(65+ui[1])}{ui[0]+1} is a Miss\n")
+                        game.moves[(player+1)%2][ui[0]][ui[1]] = "-"
+                    game.turn = (player+1)%2
+                else:
+                    os.system("clear")
+                    print(f"\n\n\n\nPlayer {(player+1)%2} is playing!\n\n\n\n")
+                if not game.connected():
+                    run = False
+                
 
-            win.blit(text, (width/2 - text.get_width()/2, height/2 - text.get_height()/2))
-            pygame.display.update()
-            pygame.time.delay(2000)
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                for btn in btns:
-                    if btn.click(pos) and game.connected():
-                        if player == 0:
-                            if not game.p1Went:
-                                n.send(btn.text)
-                        else:
-                            if not game.p2Went:
-                                n.send(btn.text)
-
-        redrawWindow(win, game, player)
+        except:
+            run = False
+            print("Couldn't get game")
+            break
 
 while True:
     main()

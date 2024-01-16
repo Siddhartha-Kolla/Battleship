@@ -2,9 +2,10 @@ class Game:
     def __init__(self, id):
         self.p1Went = False
         self.p2Went = False
+        self.board_len = 10
         self.ready = False
         self.id = id
-        self.moves = [None, None]
+        self.moves = [[["" for i in range(self.board_len)] for x in range(self.board_len)], [["" for i in range(self.board_len)] for x in range(self.board_len)]]
         self.wins = [0,0]
         self.ties = 0
 

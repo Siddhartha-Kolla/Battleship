@@ -1,7 +1,7 @@
 import socket
 from _thread import *
 import pickle
-from game import Game
+from gametech import Game
 
 print("Hello")
 server = "192.168.137.1"
@@ -29,24 +29,18 @@ def threaded_client(conn, p, gameId):
     reply = ""
     while True:
         try:
-            data = pickle.loads(conn.recv(2048*3))
+            data = conn.recv(4096).decode()
 
             if gameId in games:
+                game = games[gameId]
 
                 if not data:
                     break
-                elif data == "get":
-                    print("Yes")
-                    game = games[gameId]
-                    conn.sendall(pickle.dumps(game))
-                elif data == "play":
-                    game = games[gameId]
-                    game.play(p)
-                    conn.sendall(pickle.dumps(game))
-                    print(game.Went)
                 else:
-                    games[gameId] = data
-                    game = games[gameId]
+                    if data == "reset":
+                        game.resetWent()
+                    elif data != "get":
+                        game.play(p, data)
 
                     conn.sendall(pickle.dumps(game))
             else:
