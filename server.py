@@ -29,7 +29,7 @@ def threaded_client(conn, p, gameId):
     reply = ""
     while True:
         try:
-            data = pickle.loads(conn.recv(2048*3))
+            data = pickle.loads(conn.recv(2048*6))
 
             if gameId in games:
 
@@ -39,19 +39,45 @@ def threaded_client(conn, p, gameId):
                     print("Yes")
                     game = games[gameId]
                     conn.sendall(pickle.dumps(game))
-                elif data == "play":
+                elif "play" in data and type(data) == tuple:
                     game = games[gameId]
-                    game.play(p)
+                    game.play(p,data[1])
                     conn.sendall(pickle.dumps(game))
-                    print(game.Went)
+                elif "check" in data and type(data) == tuple:
+                    game = games[gameId]
+                    c = game.check(p,data[1])
+                    conn.sendall(pickle.dumps(c))
+                elif data == "bothwent":
+                    game = games[gameId]
+                    conn.sendall(pickle.dumps(game.bothWent()))
+                elif data == "sunkships":
+                    game = games[gameId]
+                    conn.sendall(pickle.dumps(game.sunk_ships))
+                elif data == "turn":
+                    game = games[gameId]
+                    conn.sendall(pickle.dumps(game.turn))
+                elif data == "getplayerboards":
+                    game = games[gameId]
+                    conn.sendall(pickle.dumps(game.moves))
+                elif type(data) == list:
+                    print("Yes")
+                    game = games[gameId]
+                    print(p,data,game.hit_or_miss(p,data))
+                    conn.sendall(pickle.dumps(game.hit_or_miss(p,data)))
+                elif data == "changeturn":
+                    game = games[gameId]
+                    print(f"Changing turn {game.turn}")
+                    game.turn = (p+1)%2
+                    print(f"Now turn {game.turn}")
+                elif data == "connected":
+                    conn.sendall(pickle.dumps(game.connected()))
                 else:
-                    games[gameId] = data
-                    game = games[gameId]
 
-                    conn.sendall(pickle.dumps(game))
+                    conn.sendall(None)
             else:
                 break
-        except:
+        except Exception as e:
+            print("Error catched", e)
             break
 
     print("Lost connection")

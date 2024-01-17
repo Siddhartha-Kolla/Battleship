@@ -4,6 +4,7 @@ import os
 from network import Network
 import pickle
 import time
+import socket
 
 board_len = 10
 playe_board = [["" for i in range(board_len)] for x in range(board_len)]
@@ -35,12 +36,12 @@ def place_ships(com_board,board_len,board):
         while not pos_ok:
             os.system("clear")
             pos = ask_user_input(board_len,f"You should now place a Ship with a size of {i}. Please choose the starting pos of the ship: ",board,com_board)
-            orientation = input("vertical or horizontal?: ")
-            while orientation.lower() != "vertical" and orientation.lower() != "horizontal":
-                orientation = input("Invalid argument. vertical or horizontal?: ")
+            orientation = input("vertical(v) or horizontal(h)?: ")
+            while orientation.lower() != "v" and orientation.lower() != "h":
+                orientation = input("Invalid argument. vertical(v) or horizontal(h)?: ")
             if (pos[0]+i) % board_len == 1 or (pos[1]+i) % board_len == 1:
                 continue
-            if orientation == "horizontal":
+            if orientation == "h":
                 temp_status = False
                 for x in range(i):
                     if pos[1]+x >= board_len:
@@ -92,46 +93,49 @@ def main():
     player_board = place_ships(opponent_board,board_len,playe_board)
     
     run = True
-    game = n.send("get")
-    game.Went[player] = True
-    game.moves[player] = player_board
-    game = n.send("play")
+    game = n.send(("play",player_board))
     while run:
         try:
-            game = n.send("get")         
-            if not game.bothWent():
+            if not n.send("bothwent"):
                 print("Waiting for the Player.......")
-            else:
                 os.system("clear")
-                if 4 in game.sunk_ships:
-                    print(f"Game Over! Player {game.sunk_ships.index(4)+1} Won")
-                if game.turn == player:
+            else:
+                if 4 in (sun := n.send("sunkships")):
+                    print(f"Game Over! Player {sun.index(4)+1} Won")
+                if (now_turn := n.send("turn")) == player:
                     os.system("clear")
                     print(f"It's your turn! You are player {player}")
                     time.sleep(2)
                     os.system("clear")
-                    ui = ask_user_input(game.board_len,"Please type in your coordinate like H7: ",game.moves[player],[["" if type(game.moves[(player+1)%2][x][value]) == int else game.moves[(player+1)%2][x][value] for value in range(game.board_len)] for x in range(game.board_len)])
-                    while game.moves[(player+1)%2][ui[0]][ui[1]] == "-" or game.moves[(player+1)%2][ui[0]][ui[1]] == "X":
+                    moves = n.send("getplayerboards")
+                    ui = ask_user_input(board_len,"Please type in your coordinate like H7: ",moves[player],[["" if type(moves[(player+1)%2][x][value]) == int else moves[(player+1)%2][x][value] for value in range(board_len)] for x in range(board_len)])
+                    # try:
+                    #     print(n.send(ui))
+                    #     time.sleep(2)
+                    # except Exception as e:
+                    #     print("Error catched",e)
+                    #     time.sleep(2)
+                    while n.send(("check",ui)) == "-X":
                         os.system("clear")
                         print("You already guessed this coordinate")
-                        ui = ask_user_input(game.board_len,"Please type in your coordinate like H7: ",game.moves[player],[["" if type(game.moves[(player+1)%2][x][value]) == int else game.moves[(player+1)%2][x][value] for value in range(game.board_len)] for x in range(game.board_len)])
-                    if game.moves[(player+1)%2][ui[0]][ui[1]].isdigit():
+                        ui = ask_user_input(board_len,"Please type in your coordinate like H7: ",moves[player],[["" if type(moves[(player+1)%2][x][value]) == int else moves[(player+1)%2][x][value] for value in range(board_len)] for x in range(board_len)])
+                    if (result := n.send(ui)) == "S" or result == "H":
                         os.system("clear")
                         print(f"{chr(65+ui[1])}{ui[0]+1} is a Hit\n")
-                        temp_num = game.moves[(player+1)%2][ui[0]][ui[1]]
-                        game.moves[(player+1)%2][ui[0]][ui[1]] = "X"
-                        if not game.if_sunk_or_not(game.moves[(player+1)%2],temp_num):
+                        if result == "S":
                             print("Sunk")
-                            game.sunk_ships[(player+1)%2] += 1
+                        time.sleep(2)
                     else:
                         os.system("clear")
                         print(f"{chr(65+ui[1])}{ui[0]+1} is a Miss\n")
-                        game.moves[(player+1)%2][ui[0]][ui[1]] = "-"
-                    game.turn = (player+1)%2
-                else:
+                        time.sleep(2)
                     os.system("clear")
+                    n.send("changeturn")
+                    print("Is all okay?")
+                else:
                     print(f"\n\n\n\nPlayer {(player+1)%2} is playing!\n\n\n\n")
-                if not game.connected():
+                    time.sleep(4)
+                if not n.send("connected"):
                     run = False
                 
 

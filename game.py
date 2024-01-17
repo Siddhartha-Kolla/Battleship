@@ -10,7 +10,7 @@ class Game:
         self.moves = [[["" for i in range(self.board_len)] for x in range(self.board_len)], [["" for i in range(self.board_len)] for x in range(self.board_len)]]
         self.sunk_ships = [0,0]
         self.turn = 0
-    def if_sunk_or_not(com_board,num):
+    def if_sunk_or_not(com_board,num,a):
         return any(num in x for x in com_board)
     def connected(self):
         return self.ready
@@ -19,18 +19,23 @@ class Game:
     def resetWent(self):
         self.p1Went = False
         self.p2Went = False
-    def play(self, player):
-        if player == 0:
-            self.Went[0] = True
-        else:
-            self.Went[1] = True
+    def play(self, player, player_board):
+        self.Went[player] = True
+        self.moves[player] = player_board
+    def check(self,player,ui):
+        if self.moves[(player+1)%2][ui[0]][ui[1]] == "-" or self.moves[(player+1)%2][ui[0]][ui[1]] == "X":
+            return "-X"
     def hit_or_miss(self,player,ui):
+        if self.moves[(player+1)%2][ui[0]][ui[1]] == "-" or self.moves[(player+1)%2][ui[0]][ui[1]] == "X":
+            return "-X"
         if self.moves[(player+1)%2][ui[0]][ui[1]].isdigit():
             temp_num = self.moves[(player+1)%2][ui[0]][ui[1]]
             self.moves[(player+1)%2][ui[0]][ui[1]] = "X"
-            if not self.if_sunk_or_not(self.moves[(player+1)%2],temp_num):
-                print("Sunk")
+            temp_var = self.moves[(player+1)%2]
+            if not any(temp_num in x for x in temp_var):
                 self.sunk_ships[(player+1)%2] += 1
+                return "S"
+            return "H"
         else:
             self.moves[(player+1)%2][ui[0]][ui[1]] = "-"
-        self.turn = (player+1)%2
+            return "M"
