@@ -1,6 +1,7 @@
 # Import and initialize the pg library
 import pygame as pg
 import random
+import time
 
 def place_ships(com_board,board_len):
     for i in range(2,6):
@@ -78,13 +79,16 @@ def inititialize():
     global sunk_ships
     sunk_ships = 0
 
+    global message
+    message = (False,"Sunk")
+
     global screen
     screen = pg.display.set_mode((width, height))
 
     global temp_screen_dedicated
     temp_screen_dedicated = 435 // 10
 
-    # pg.display.set_icon(pg.image.load('images/logo.ico'))
+    pg.display.set_icon(pg.image.load('images/logo.ico'))
     pg.display.set_caption("Battleship")
 
 
@@ -122,6 +126,7 @@ while running:
                         com_board[min(board_len-1,ui[0])][min(board_len-1,ui[1])] = "X"
                         if not if_sunk_or_not(com_board,temp_num):
                             sunk_ships += 1
+                            message = (True,"Sunk")
                     else:
                         board[min(board_len-1,ui[0])][min(board_len-1,ui[1])] = "-"
                         com_board[min(board_len-1,ui[0])][min(board_len-1,ui[1])] = "-"
@@ -129,6 +134,28 @@ while running:
     background_image = pg.image.load("images/board.jpg")
     screen.blit(background_image,(0,0))
     placing_the_figure()
+    if message[0]:
+        na = basefont.render(message[1],True,(0,0,0))
+        na_rect = na.get_rect(center=(width//2,height//2))
+        screen.blit(na,na_rect)
+        pg.display.flip()
+        time.sleep(2)
+        message = (False,"")
+    if False:
+        na = basefont.render("You have won the game! Congratulations!",True,(0,255,0),fontsize = 14)
+        na_rect = na.get_rect(center=(width//2,height//2))
+        screen.blit(na,na_rect)
+        pg.display.flip()
+        time.sleep(4)
+        break
+    elif sunk_ships == 4:
+        # na = basefont.render("Oh no you have lost the game.",True,(255,0,0),fontsize = 14)
+        screen.draw.text("hello world", (100, 100), fontname="Viga", fontsize=14)
+        # na_rect = na.get_rect(center=(width//2,height//2))
+        # screen.blit(na,na_rect)
+        pg.display.flip()
+        time.sleep(4)
+        break
     # Flip the display
     pg.display.flip()
 
